@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Mini-Games Hub</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #3b82f6;
+            --text-main: #f8fafc;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header { text-align: center; margin-bottom: 30px; }
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        .game-view { display: none; width: 100%; max-width: 600px; text-align: center; }
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        /* Whack-a-Mole Styles */
+        .grid-3x3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px auto;
+            max-width: 300px;
+        }
+        .hole {
+            background: #475569;
+            height: 80px;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+        }
+        .mole {
+            background: #b45309;
+            border-radius: 50%;
+            position: absolute;
+            top: 10%; left: 10%; right: 10%; bottom: 10%;
+            display: none;
+        }
+        /* Reaction Styles */
+        #test-patch {
+            width: 100%;
+            height: 200px;
+            background-color: #ef4444;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🕹️ Arcade Hub</h1>
+        <p>Select a mini-game to begin playing!</p>
+    </header>
+
+    <!-- HUB VIEW -->
+    <div id="hubView" class="hub-grid">
+        <div class="card" onclick="switchView('moleGame')">
+            <h3>🔨 Whack-A-Mole</h3>
+            <p>Test your speed and hit the moles before they hide.</p>
+        </div>
+        <div class="card" onclick="switchView('reactionGame')">
+            <h3>⚡ Reaction Timer</h3>
+            <p>Click as fast as you can when the screen turns green.</p>
+        </div>
+    </div>
+
+    <!-- WHACK A MOLE -->
+    <div id="moleGame" class="game-view">
+        <h2>Whack-A-Mole | Score: <span id="moleScore">0</span></h2>
+        <div class="grid-3x3">
+            <div class="hole" onclick="whack(0)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(1)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(2)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(3)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(4)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(5)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(6)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(7)"><div class="mole"></div></div>
+            <div class="hole" onclick="whack(8)"><div class="mole"></div></div>
+        </div>
+        <button class="btn" onclick="startMole()">Start Game</button>
+        <button class="btn" onclick="switchView('hubView')" style="background:#64748b">Back to Hub</button>
+    </div>
+
+    <!-- REACTION TIMER -->
+    <div id="reactionGame" class="game-view">
+        <h2>Reaction Timer</h2>
+        <div id="test-patch" onclick="handleReactionClick()">Click to Start</div>
+        <p id="reactionResult"></p>
+        <button class="btn" onclick="switchView('hubView')" style="background:#64748b">Back to Hub</button>
+    </div>
+
+    <script>
+        function switchView(viewId) {
+            document.querySelectorAll('.game-view, #hubView').forEach(el => el.style.display = 'none');
+            document.getElementById(viewId).style.display = viewId === 'hubView' ? 'grid' : 'block';
+            clearInterval(moleInterval);
+            clearTimeout(reactionTimeout);
+        }
+
+        /* Whack-A-Mole Logic */
+        let moleScore = 0;
+        let activeHole = -1;
+        let moleInterval;
+        function startMole() {
+            moleScore = 0;
+            document.getElementById('moleScore').innerText = moleScore;
+            clearInterval(moleInterval);
+            moleInterval = setInterval(() => {
+                document.querySelectorAll('.mole').forEach(m => m.style.display = 'none');
+                activeHole = Math.floor(Math.random() * 9);
+                document.querySelectorAll('.mole')[activeHole].style.display = 'block';
+            }, 800);
+        }
+        function whack(index) {
+            if (index === activeHole) {
+                moleScore++;
+                document.getElementById('moleScore').innerText = moleScore;
+                document.querySelectorAll('.mole')[index].style.display = 'none';
+                activeHole = -1;
+            }
+        }
+
+        /* Reaction Timer Logic */
+        let reactionState = 'idle'; // idle, waiting, green
+        let startTime, reactionTimeout;
+        const patch = document.getElementById('test-patch');
+        const result = document.getElementById('reactionResult');
+
+        function handleReactionClick() {
+            if (reactionState === 'idle') {
+                patch.style.backgroundColor = '#eab308';
+                patch.innerText = 'Wait for Green...';
+                reactionState = 'waiting';
+                result.innerText = '';
+                reactionTimeout = setTimeout(() => {
+                    patch.style.backgroundColor = '#22c55e';
+                    patch.innerText = 'CLICK NOW!';
+                    reactionState = 'green';
+                    startTime = Date.now();
+                }, Math.random() * 3000 + 2000);
+            } else if (reactionState === 'waiting') {
+                clearTimeout(reactionTimeout);
+                patch.style.backgroundColor = '#ef4444';
+                patch.innerText = 'Too early! Click to restart.';
+                reactionState = 'idle';
+            } else if (reactionState === 'green') {
+                let ms = Date.now() - startTime;
+                patch.style.backgroundColor = '#3b82f6';
+                patch.innerText = 'Click to try again';
+                result.innerText = `Your reaction time: ${ms}ms`;
+                reactionState = 'idle';
+            }
+        }
+    </script>
+</body>
+</html>
